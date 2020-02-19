@@ -4,11 +4,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 import pickle
+import numpy as np
+import random
 import argparse
 import tensorflow.keras.layers as layers
 import tensorflow as tf
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from keras import backend as K
 from resnet import residual_network
 from my_metrics import *
 from util import *
@@ -28,6 +31,15 @@ _resise_methods = dict(
 EPOCHS = 3
 BATCH_SIZE = 16
 IMG_W, IMG_H, IMG_C = 400, 400, 3
+
+seed = 42
+np.random.seed(seed)
+random.seed(seed)
+os.environ['PYTHONHASHSEED'] = str(seed)
+
+tf.set_random_seed(seed)
+sess = tf.Session(graph=tf.get_default_graph())
+K.set_session(sess)
 
 
 def main(args):
