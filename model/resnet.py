@@ -90,18 +90,18 @@ def residual_network(x, target_size, downsampling=tf.image.ResizeMethod.BILINEAR
         x = residual_block(x, 128, 256, _project_shortcut=project_shortcut)
 
     # conv3
-    for i in range(4):
+    for i in range(3):
         # down-sampling is performed by conv3_1, conv4_1, and conv5_1 with a stride of 2
         strides = (2, 2) if i == 0 else (1, 1)
         x = residual_block(x, 256, 512, _strides=strides)
 
     # conv4
-    for i in range(6):
+    for i in range(3):
         strides = (2, 2) if i == 0 else (1, 1)
         x = residual_block(x, 512, 1024, _strides=strides)
 
     # conv5
-    for i in range(3):
+    for i in range(1):
         strides = (2, 2) if i == 0 else (1, 1)
         x = residual_block(x, 1024, 2048, _strides=strides)
 

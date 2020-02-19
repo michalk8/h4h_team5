@@ -9,12 +9,12 @@ def get_transforms():
     return []
 
 
-def get_model(img_size, downsampling, apply_transforms=True):
+def get_model(img_size, downsampling, apply_transforms=False):
     inp = layers.Input(shape=(IMG_H, IMG_W, IMG_C))
 
     if apply_transforms:
         transforms = get_transforms()
-        raise NotImplemented('TODO: implement')
+        raise NotImplemented('TODO: implement me')
         x = inp
     else:
         x = inp
