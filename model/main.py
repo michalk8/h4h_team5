@@ -28,7 +28,7 @@ _resise_methods = dict(
 )
 
 
-EPOCHS = 3
+EPOCHS = 5
 BATCH_SIZE = 16
 IMG_W, IMG_H, IMG_C = 400, 400, 3
 
@@ -47,9 +47,6 @@ def main(args):
     test_dir = os.path.join(args.dataset_root, 'test')
     total_train = sum([len(files) for r, d, files in os.walk(train_dir)])
     total_test = sum([len(files) for r, d, files in os.walk(test_dir)])
-
-    image_tensor = layers.Input(shape=(IMG_H, IMG_W, IMG_C))
-    network_output = residual_network(image_tensor, args.img_size)
 
     model = get_model(args.img_size, _resise_methods[args.downsampling])
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
