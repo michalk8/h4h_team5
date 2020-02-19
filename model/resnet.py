@@ -11,15 +11,10 @@ import numpy as np
 from my_metrics import *
 
 
-#BATCH_SIZE = 16
-#EPOCHS = 1
-IMG_SIZE = 400
-DOWNSAMPLING = tf.image.ResizeMethod.BILINEAR
-IMG_CHANNELS = 3
 CARDINALITY = 32
 
 
-def residual_network(x, target_size):
+def residual_network(x, target_size, downsampling=tf.image.ResizeMethod.BILINEAR):
     """
     ResNeXt by default. For ResNet set `CARDINALITY` = 1 above.
     
@@ -88,7 +83,7 @@ def residual_network(x, target_size):
         return y
 
     # resizing
-    x = layers.Lambda(lambda image: tf.image.resize(image, target_size, method=DOWNSAMPLING))(x)
+    x = layers.Lambda(lambda image: tf.image.resize(image, (target_size, target_size), method=downsampling))(x)
     
     # conv1
     x = layers.Conv2D(64, kernel_size=(7, 7), strides=(2, 2), padding='same')(x)
