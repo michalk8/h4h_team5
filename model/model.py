@@ -13,9 +13,9 @@ from torch.optim import lr_scheduler
 from sklearn.metrics import confusion_matrix
 from my_metrics import *
 
-N_EPOCHS = 5
+N_EPOCHS = 10
 N_CLS = 15
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 
 def create_model():
