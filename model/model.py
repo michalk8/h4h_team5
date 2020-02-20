@@ -89,7 +89,6 @@ def main(args):
                     a = (torch.sum(preds == labels.data).item() / inputs.size(0))
                     b_loss[phase].append(l)
                     b_accs[phase].append(a)
-                break
 
             if phase == 'train':
                 scheduler.step()
@@ -108,12 +107,8 @@ def main(args):
             rec[phase].append(recall(y_trues, y_preds))
             f1[phase].append(f1_m(y_trues, y_preds))
 
-
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
-            break
-        print('foo')
-        break
 
     result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
               'prec': prec, 'rec': rec, 'f1': f1}
