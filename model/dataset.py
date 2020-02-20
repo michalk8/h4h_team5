@@ -37,6 +37,11 @@ class MyDataset(Dataset):
         self.degradations = degradations
         self.resize = resize
         self.is_train = is_train
+        self.finalize = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
 
         print('Number of classes:', len(self.class_mapper))
         print('Image size:', img_size)
@@ -72,8 +77,7 @@ class MyDataset(Dataset):
                     out.seek(0)
                     img = Image.open(out)
 
-        totensor = transforms.ToTensor()
-        img = totensor(img)
+        img = self.finalize(img)
 
         return img, y
 

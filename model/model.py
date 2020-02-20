@@ -15,7 +15,7 @@ from my_metrics import *
 
 N_EPOCHS = 10
 N_CLS = 15
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 
 def create_model():
