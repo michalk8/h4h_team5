@@ -116,7 +116,7 @@ def main(args):
         epochs=EPOCHS,
         validation_data=val_data_gen,
         validation_steps=total_test // BATCH_SIZE,
-        class_weight=class_weights,
+        #class_weight=class_weights,
         callbacks=[log_callback]
     )
 
