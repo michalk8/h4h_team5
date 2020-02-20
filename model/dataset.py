@@ -37,6 +37,11 @@ class MyDataset(Dataset):
         self.degradations = degradations
         self.resize = resize
         self.is_train = is_train
+        self.finalize = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
 
         print('Number of classes:', len(self.class_mapper))
         print('Image size:', img_size)
@@ -72,8 +77,7 @@ class MyDataset(Dataset):
                     out.seek(0)
                     img = Image.open(out)
 
-        totensor = transforms.ToTensor()
-        img = totensor(img)
+        img = self.finalize(img)
 
         return img, y
 
@@ -92,7 +96,7 @@ def get_datasets(root_dir, img_size, degradations, batch_size=16):
 
 
 if __name__ == '__main__':
-    dataset, _ = get_datasets('./../../dataset_rem_lr')
+    dataset, _ = get_datasets('./../../dataset_rem_lr', 400, degradations=['jpeg_5'])
     for img, _ in dataset:
         img = img.numpy()[0]
         img = np.swapaxes(img, 0, 2)

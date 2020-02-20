@@ -4,20 +4,22 @@ import torch.nn as nn
 import torch.optim as optim
 import torch
 import torchvision.models as models
+import numpy as np
 import argparse
 import pickle
 
 from dataset import get_datasets
 from torch.optim import lr_scheduler
 from sklearn.metrics import confusion_matrix
+from my_metrics import *
 
-N_EPOCHS = 5
+N_EPOCHS = 10
 N_CLS = 15
 BATCH_SIZE = 16
 
 
 def create_model():
-    model = models.resnet18()
+    model = models.resnext50_32x4d(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, N_CLS)
 
@@ -25,8 +27,10 @@ def create_model():
 
 
 def main(args):
-    device = torch.device('gpu:0') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = create_model().to(device)
+    
+    print('Number of parameters:', sum(p.numel() for p in model.parameters()))
 
     trn_loader, tst_loader = get_datasets(args.dataset_root, args.img_size, args.degradations)
     dataloaders = {'train': trn_loader, 'val': tst_loader}
@@ -40,6 +44,10 @@ def main(args):
     cmats = {'train': [], 'val': []}
     losses = {'train': [], 'val': []}
     accs = {'train': [], 'val': []}
+
+    prec = {'train': [], 'val': []}
+    rec = {'train': [], 'val': []}
+    f1 = {'train': [], 'val': []}
 
     b_loss = {'train': [], 'val': []}
     b_accs = {'train': [], 'val': []}
@@ -87,21 +95,27 @@ def main(args):
             if phase == 'train':
                 scheduler.step()
 
+            y_trus = np.array(y_trues)
+            y_pres = np.array(y_preds)
+
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
-            losses[phase].append(epoch_loss)
-            accs[phase].append(epoch_acc)
-            cmats[phase].append(confusion_matrix(y_trues, y_preds))
+            losses[phase].append(float(epoch_loss))
+            accs[phase].append(float(epoch_acc))
+            cmats[phase].append(confusion_matrix(y_trus, y_pres))
+
+            prec[phase].append(precision(y_trus, y_pres))
+            rec[phase].append(recall(y_trus, y_pres))
+            f1[phase].append(f1_m(y_trus, y_pres))
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
-        print()
 
-        result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs}
-        with open('result_{}_{}_{}_{}.pickle'.format(args.img_size, args.downsampling, args.sigma,
-                                                     args.jpeg_quality), 'wb') as fout:
-            pickle.dump(result, fout)
+    result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
+              'prec': prec, 'rec': rec, 'f1': f1}
+    with open('result_{}_{}.pickle'.format(args.img_size, '_'.join(args.degradations)), 'wb') as fout:
+        pickle.dump(result, fout)
 
 
 if __name__ == '__main__':
