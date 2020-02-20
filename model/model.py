@@ -27,7 +27,7 @@ def create_model():
 
 
 def main(args):
-    device = torch.device('gpu:0') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = create_model().to(device)
 
     trn_loader, tst_loader = get_datasets(args.dataset_root, args.img_size, args.degradations)
@@ -93,19 +93,19 @@ def main(args):
             if phase == 'train':
                 scheduler.step()
 
-            y_trues = np.array(y_trues)
-            y_preds = np.array(y_preds)
+            y_trus = np.array(y_trues)
+            y_pres = np.array(y_preds)
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
             losses[phase].append(float(epoch_loss))
             accs[phase].append(float(epoch_acc))
-            cmats[phase].append(confusion_matrix(y_trues, y_preds))
+            cmats[phase].append(confusion_matrix(y_trus, y_pres))
 
-            prec[phase].append(precision(y_trues, y_preds))
-            rec[phase].append(recall(y_trues, y_preds))
-            f1[phase].append(f1_m(y_trues, y_preds))
+            prec[phase].append(precision(y_trus, y_pres))
+            rec[phase].append(recall(y_trus, y_pres))
+            f1[phase].append(f1_m(y_trus, y_pres))
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
