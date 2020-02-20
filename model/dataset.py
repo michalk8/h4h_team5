@@ -31,7 +31,7 @@ class MyDataset(Dataset):
         self.augmentations = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
-            transforms.RandomRotation(degrees=180, fill=0)
+            transforms.RandomRotation(degrees=180, fill=255)
             
         ])
         self.degradations = degradations
@@ -41,9 +41,9 @@ class MyDataset(Dataset):
         self.finalize = transforms.Compose([
             transforms.ToTensor(),
             #transforms.Normalize(mean=[0.485, 0.456, 0.406],
-#                                 std=[0.229, 0.224, 0.225]),
-            transforms.Normalize(mean=[0.8209723354249416, 0.72855397072732, 0.8370288417509043],
-                                 std=[0.046376735214234306, 0.05731946555779979, 0.04099006407014564]),
+            #                     std=[0.229, 0.224, 0.225]),
+            #transforms.Normalize(mean=[0.8209723354249416, 0.7285539707273201, 0.8370288417509042],
+            #                     std=[0.002150924859562229, 0.0032857094678095506, 0.0016802816657651217]),
             transforms.ToPILImage()
         ])
 
