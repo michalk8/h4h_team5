@@ -39,7 +39,7 @@ class LogCallBack(tf.keras.callbacks.Callback):
         print('{},{},{},{},{}'.format(logs['loss'], logs['acc'], logs['f1_m'], logs['precision'], logs['recall']),
               file=self.file_trn)
 
-    def on_test_batch_begin(self, batch, logs=None):
+    def on_test_batch_end(self, batch, logs=None):
         print('{},{},{},{},{}'.format(logs['loss'], logs['acc'], logs['f1_m'], logs['precision'], logs['recall']),
               file=self.file_tst)
 
@@ -71,7 +71,7 @@ def main(args):
     total_test = sum([len(files) for r, d, files in os.walk(test_dir)])
 
     model = get_model(args.img_size, _resise_methods[args.downsampling], args.jpeg_quality, args.sigma)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy',
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['sparse_categorical_accuracy',
                                                                               f1_m,
                                                                               tf.keras.metrics.Precision(),
                                                                               tf.keras.metrics.Recall()])
