@@ -82,8 +82,8 @@ def main(args):
         class_weights[i] = 1 - (float(files_per_class[i]) / total_files)
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard('logs', write_images=True)
-    csv_callback = tf.keras.callbacks.callbacks.CSVLogger('data_{}_{}_{}_{}.csv'.format(args.img_sze, args.downsampling,
-                                                                                        args.sigma, args.jpeg_quality), separator=',', append=False)
+    csv_callback = tf.keras.callbacks.CSVLogger('data_{}_{}_{}_{}.csv'.format(args.img_sze, args.downsampling,
+                                                                              args.sigma, args.jpeg_quality), separator=',', append=False)
 
     history = model.fit_generator(
         train_data_gen,
