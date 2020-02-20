@@ -19,13 +19,14 @@ from PIL import ImageFilter
 
 class MyDataset(Dataset):
 
-    def __init__(self, path, degradations=None, resize=None):
+    def __init__(self, path, img_size, degradations=None, resize=None):
         self.paths = [os.path.join(path, cls, f)
                       for cls in os.listdir(path)
                       for f in os.listdir(os.path.join(path, cls))]
         self.classes = [cls
                         for cls in os.listdir(path)
                         for f in os.listdir(os.path.join(path, cls))]
+        self.img_size = (img_size, img_size)
         self.class_mapper = {k: i for i, k in enumerate(set(self.classes))}
         self.augmentations = transforms.Compose([
             transforms.RandomHorizontalFlip(),
@@ -35,7 +36,10 @@ class MyDataset(Dataset):
         ])
         self.degradations = degradations
         self.resize = resize
+
         print('Number of classes:', len(self.class_mapper))
+        print('Image size:', img_size)
+        print('Degradations:', self.degradations)
 
     def __len__(self):
         return len(self.paths)
@@ -44,7 +48,7 @@ class MyDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.to_list()
 
-        img = Image.open(self.paths[idx]).convert('RGB')
+        img = Image.open(self.paths[idx]).convert('RGB').resize(size=self.img_size, resample=Image.BILINEAR)
         y = self.class_mapper[self.classes[idx]]
         
         if self.resize:
@@ -72,13 +76,13 @@ class MyDataset(Dataset):
         return img, y
 
 
-def get_datasets(root_dir, batch_size=16):
+def get_datasets(root_dir, img_size, degradations, batch_size=16):
     trn_path, tst_path = os.path.join(root_dir, 'train',), os.path.join(root_dir, 'test')
-    trn_dataset = MyDataset(trn_path)
+    trn_dataset = MyDataset(trn_path, img_size, degradations=degradations)
     trn_loader = DataLoader(trn_dataset, batch_size=batch_size, shuffle=False,
                             pin_memory=True, sampler=ImbalancedDatasetSampler(trn_dataset,
                                                                               callback_get_label=lambda dataset, ix: dataset.classes[ix]))
-    tst_loader = DataLoader(MyDataset(tst_path), batch_size=batch_size, shuffle=False,
+    tst_loader = DataLoader(MyDataset(tst_path, img_size), batch_size=batch_size, shuffle=False,
                             pin_memory=True, sampler=None)
 
     return trn_loader, tst_loader

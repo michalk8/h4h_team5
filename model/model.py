@@ -28,7 +28,7 @@ def main(args):
     device = torch.device('gpu:0') if torch.cuda.is_available() else torch.device('cpu')
     model = create_model().to(device)
 
-    trn_loader, tst_loader = get_datasets(args.dataset_root)
+    trn_loader, tst_loader = get_datasets(args.dataset_root, args.img_size, args.degradations)
     dataloaders = {'train': trn_loader, 'val': tst_loader}
     dataset_sizes = {x: len(dataloaders[x]) * BATCH_SIZE for x in ['train', 'val']}
     print(dataset_sizes)
@@ -108,8 +108,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset_root', type=str)
     parser.add_argument('img_size', type=int)
-    parser.add_argument('downsampling', type=str)
-    parser.add_argument('--sigma', type=float, default=None)
-    parser.add_argument('--jpeg-quality', type=int, default=None)
+    parser.add_argument('degradations', type=str, nargs='*')
 
     main(parser.parse_args())
