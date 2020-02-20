@@ -14,7 +14,7 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 #from my_metrics import *
 from time import time
 
-N_EPOCHS = 8
+N_EPOCHS = 10
 N_CLS = 15
 BATCH_SIZE = 16
 
