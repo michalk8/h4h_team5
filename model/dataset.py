@@ -4,6 +4,7 @@ import torch
 import os
 import numpy as np
 
+from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
@@ -18,7 +19,9 @@ class MyDataset(Dataset):
                        for cls in os.listdir(path)
                        for f in os.listdir(os.path.join(path, cls))]
         self.class_mapper = {k: i for i, k in enumerate(set(self.classes))}
-        self.transforms = []
+        self.transforms = transforms.Compose([
+            transforms.ToTensor()
+        ])
         print('Number of classes:', len(self.class_mapper))
 
     def __len__(self):
@@ -28,10 +31,10 @@ class MyDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.to_list()
 
-        img = np.array(Image.open(self.paths[idx]))
+        img = Image.open(self.paths[idx]).convert('RGB')
         y = self.class_mapper[self.classes[idx]]
 
-        return img, y
+        return self.transforms(img), y
 
 
 def get_datasets(root_dir, batch_size=16):
