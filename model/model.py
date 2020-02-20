@@ -10,8 +10,8 @@ import pickle
 
 from dataset import get_datasets
 from torch.optim import lr_scheduler
-from sklearn.metrics import confusion_matrix
-from my_metrics import *
+from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
+#from my_metrics import *
 from time import time
 
 N_EPOCHS = 10
@@ -106,17 +106,22 @@ def main(args):
             losses[phase].append(float(epoch_loss))
             accs[phase].append(float(epoch_acc))
             cmats[phase].append(confusion_matrix(y_trus, y_pres))
-
-            prec[phase].append(precision(y_trus, y_pres))
-            rec[phase].append(recall(y_trus, y_pres))
-            f1[phase].append(f1_m(y_trus, y_pres))
+            precision, recall, fscore, support = precision_recall_fscore_support(y_trus, y_pres, )
+            precision_avg, recall_avg, fscore_avg, support_avg = precision_recall_fscore_support(y_trus, y_pres, average='weighted')
+            
+            prec[phase].append(precision)
+            rec[phase].append(recall)
+            f1[phase].append(fscore)
+            prec_avg[phase].append(precision_avg)
+            rec_avg[phase].append(recall_avg)
+            f1_avg[phase].append(fscore_avg)
 
             print('{} - {} Loss: {:.4f} Acc: {:.4f}'.format(start - time(),
 
                 phase, epoch_loss, epoch_acc))
 
     result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
-              'prec': prec, 'rec': rec, 'f1': f1}
+              'prec': prec, 'rec': rec, 'f1': f1, 'prec_avg'; prec_avg, 'rec_avg': rec_avg, 'f1_avg':fscore_avg}
     with open('result_{}_{}.pickle'.format(args.img_size, '_'.join(args.degradations)), 'wb') as fout:
         pickle.dump(result, fout)
 
