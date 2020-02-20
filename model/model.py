@@ -4,12 +4,14 @@ import torch.nn as nn
 import torch.optim as optim
 import torch
 import torchvision.models as models
+import numpy as np
 import argparse
 import pickle
 
 from dataset import get_datasets
 from torch.optim import lr_scheduler
 from sklearn.metrics import confusion_matrix
+from my_metrics import *
 
 N_EPOCHS = 5
 N_CLS = 15
@@ -40,6 +42,10 @@ def main(args):
     cmats = {'train': [], 'val': []}
     losses = {'train': [], 'val': []}
     accs = {'train': [], 'val': []}
+
+    prec = {'train': [], 'val': []}
+    rec = {'train': [], 'val': []}
+    f1 = {'train': [], 'val': []}
 
     b_loss = {'train': [], 'val': []}
     b_accs = {'train': [], 'val': []}
@@ -88,6 +94,9 @@ def main(args):
             if phase == 'train':
                 scheduler.step()
 
+            y_trues = np.array(y_trues)
+            y_preds = np.array(y_preds)
+
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
@@ -95,13 +104,19 @@ def main(args):
             accs[phase].append(float(epoch_acc))
             cmats[phase].append(confusion_matrix(y_trues, y_preds))
 
+            prec[phase].append(precision(y_trues, y_preds))
+            rec[phase].append(recall(y_trues, y_preds))
+            f1[phase].append(f1_m(y_trues, y_preds))
+
+
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
             break
         print('foo')
         break
 
-    result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs}
+    result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
+              'prec': prec, 'rec': rec, 'f1': f1}
     with open('result_{}_{}.pickle'.format(args.img_size, '_'.join(args.degradations)), 'wb') as fout:
         pickle.dump(result, fout)
 
