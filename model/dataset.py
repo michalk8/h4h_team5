@@ -84,7 +84,7 @@ class MyDataset(Dataset):
 
         img = self.to_tensor(img)
 
-        return img#, y
+        return img, y  # commet y to create the figures
 
 
 def get_datasets(root_dir, img_size, degradations=[], batch_size=16):
