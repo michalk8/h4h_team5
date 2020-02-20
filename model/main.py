@@ -48,7 +48,7 @@ def main(args):
     total_train = sum([len(files) for r, d, files in os.walk(train_dir)])
     total_test = sum([len(files) for r, d, files in os.walk(test_dir)])
 
-    model = get_model(args.img_size, _resise_methods[args.downsampling])
+    model = get_model(args.img_size, _resise_methods[args.downsampling], args.jpeg_quality, args.sigma)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     print(model.summary())
 
@@ -81,16 +81,22 @@ def main(args):
     for i in range(len(files_per_class)):
         class_weights[i] = 1 - (float(files_per_class[i]) / total_files)
 
+    tensorboard_callback = tf.keras.callbacks.TensorBoard('logs', write_images=True)
+    csv_callback = tf.keras.callbacks.callbacks.CSVLogger('data_{}_{}_{}_{}.csv'.format(args.img_sze, args.downsampling,
+                                                                                        args.sigma, args.jpeg_quality), separator=',', append=False)
+
     history = model.fit_generator(
         train_data_gen,
         steps_per_epoch=total_train // BATCH_SIZE,
         epochs=EPOCHS,
         validation_data=val_data_gen,
         validation_steps=total_test // BATCH_SIZE,
-        class_weight=class_weights
+        class_weight=class_weights,
+        callbacks=[tensorboard_callback, csv_callback]
     )
 
-    with open('trainHistoryDict_{}_{}.pickle'.format(args.img_size, args.downsampling), 'wb') as fout:
+    with open('trainHistoryDict_{}_{}_{}_{}.pickle'.format(args.img_size, args.downsampling, args.sigma,
+                                                           args.jpeg_quality), 'wb') as fout:
         pickle.dump(history.history, fout)
 
 
@@ -99,5 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('dataset_root', type=str)
     parser.add_argument('img_size', type=int)
     parser.add_argument('downsampling', type=str)
+    parser.add_argument('--sigma', type=float, default=None)
+    parser.add_argument('--jpeg-quality', type=int, default=None)
 
     main(parser.parse_args())
