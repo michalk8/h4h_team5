@@ -92,7 +92,7 @@ def get_datasets(root_dir, img_size, degradations, batch_size=16):
 
 
 if __name__ == '__main__':
-    dataset, _ = get_datasets('./../../dataset_rem_lr')
+    dataset, _ = get_datasets('./../../dataset_rem_lr', 400, degradations=['jpeg_5'])
     for img, _ in dataset:
         img = img.numpy()[0]
         img = np.swapaxes(img, 0, 2)

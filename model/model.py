@@ -83,6 +83,7 @@ def main(args):
                     a = (torch.sum(preds == labels.data).item() / inputs.size(0))
                     b_loss[phase].append(l)
                     b_accs[phase].append(a)
+                break
 
             if phase == 'train':
                 scheduler.step()
@@ -90,18 +91,19 @@ def main(args):
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
-            losses[phase].append(epoch_loss)
-            accs[phase].append(epoch_acc)
+            losses[phase].append(float(epoch_loss))
+            accs[phase].append(float(epoch_acc))
             cmats[phase].append(confusion_matrix(y_trues, y_preds))
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
-        print()
+            break
+        print('foo')
+        break
 
-        result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs}
-        with open('result_{}_{}_{}_{}.pickle'.format(args.img_size, args.downsampling, args.sigma,
-                                                     args.jpeg_quality), 'wb') as fout:
-            pickle.dump(result, fout)
+    result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs}
+    with open('result_{}_{}.pickle'.format(args.img_size, '_'.join(args.degradations)), 'wb') as fout:
+        pickle.dump(result, fout)
 
 
 if __name__ == '__main__':
