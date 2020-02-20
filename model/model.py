@@ -20,8 +20,8 @@ BATCH_SIZE = 16
 
 
 def create_model():
-    model = models.resnet18(pretrained=True)
-    #model = models.resnext50_32x4d(pretrained=True)
+    model = models.resnet34(pretrained=True)
+    # model = models.resnext50_32x4d(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, N_CLS)
 
@@ -122,7 +122,7 @@ def main(args):
             rec_avg[phase].append(recall_avg)
             f1_avg[phase].append(fscore_avg)
 
-            print('{} - {} Loss: {:.4f} Acc: {:.4f}'.format(start - time(),
+            print('{} - {} Loss: {:.4f} Acc: {:.4f}'.format(time() - start,
 
                 phase, epoch_loss, epoch_acc))
 
