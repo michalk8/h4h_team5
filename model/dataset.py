@@ -31,16 +31,20 @@ class MyDataset(Dataset):
         self.augmentations = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
-            transforms.RandomRotation(degrees=180, fill=255)
+            transforms.RandomRotation(degrees=180, fill=0)
             
         ])
         self.degradations = degradations
         self.resize = resize
         self.is_train = is_train
+        self.to_tensor = transforms.ToTensor()
         self.finalize = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406],
+#                                 std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.8209723354249416, 0.72855397072732, 0.8370288417509043],
+                                 std=[0.046376735214234306, 0.05731946555779979, 0.04099006407014564]),
+            transforms.ToPILImage()
         ])
 
         print('Number of classes:', len(self.class_mapper))
@@ -55,15 +59,16 @@ class MyDataset(Dataset):
             idx = idx.to_list()
 
         img = Image.open(self.paths[idx]).convert('RGB').resize(size=self.img_size, resample=Image.BILINEAR)
+        img = self.finalize(img)
         y = self.class_mapper[self.classes[idx]]
         
         if self.resize:
             resize_transform = transforms.Resize(self.resize)
             img = resize_transform(img)
-        
+
         if self.is_train:
             img = self.augmentations(img)
-        
+
         if self.degradations:
             for i in self.degradations:
                 w = re.split('_', i)
@@ -77,7 +82,7 @@ class MyDataset(Dataset):
                     out.seek(0)
                     img = Image.open(out)
 
-        img = self.finalize(img)
+        img = self.to_tensor(img)
 
         return img, y
 
@@ -96,7 +101,7 @@ def get_datasets(root_dir, img_size, degradations, batch_size=16):
 
 
 if __name__ == '__main__':
-    dataset, _ = get_datasets('./../../dataset_rem_lr', 400, degradations=['jpeg_5'])
+    dataset, _ = get_datasets('./../../dataset_rem_lr', 400, degradations=[])
     for img, _ in dataset:
         img = img.numpy()[0]
         img = np.swapaxes(img, 0, 2)

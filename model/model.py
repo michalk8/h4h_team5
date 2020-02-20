@@ -12,6 +12,7 @@ from dataset import get_datasets
 from torch.optim import lr_scheduler
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 #from my_metrics import *
+from time import time
 
 N_EPOCHS = 10
 N_CLS = 15
@@ -65,6 +66,7 @@ def main(args):
             running_loss = 0.0
             running_corrects = 0
 
+            start = time()
             for cnt, (inputs, labels) in enumerate(dataloaders[phase]):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
@@ -114,7 +116,8 @@ def main(args):
             rec_avg[phase].append(recall_avg)
             f1_avg[phase].append(fscore_avg)
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+            print('{} - {} Loss: {:.4f} Acc: {:.4f}'.format(start - time(),
+
                 phase, epoch_loss, epoch_acc))
 
     result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
