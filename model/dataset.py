@@ -19,7 +19,7 @@ from PIL import ImageFilter
 
 class MyDataset(Dataset):
 
-    def __init__(self, path, img_size, degradations=None, resize=None):
+    def __init__(self, path, img_size, is_train=True, degradations=None, resize=None):
         self.paths = [os.path.join(path, cls, f)
                       for cls in os.listdir(path)
                       for f in os.listdir(os.path.join(path, cls))]
@@ -36,6 +36,7 @@ class MyDataset(Dataset):
         ])
         self.degradations = degradations
         self.resize = resize
+        self.is_train = is_train
 
         print('Number of classes:', len(self.class_mapper))
         print('Image size:', img_size)
@@ -54,8 +55,9 @@ class MyDataset(Dataset):
         if self.resize:
             resize_transform = transforms.Resize(self.resize)
             img = resize_transform(img)
-            
-        img = self.augmentations(img)
+        
+        if self.is_train:
+            img = self.augmentations(img)
         
         if self.degradations:
             for i in self.degradations:
@@ -78,11 +80,12 @@ class MyDataset(Dataset):
 
 def get_datasets(root_dir, img_size, degradations, batch_size=16):
     trn_path, tst_path = os.path.join(root_dir, 'train',), os.path.join(root_dir, 'test')
-    trn_dataset = MyDataset(trn_path, img_size, degradations=degradations)
+    trn_dataset = MyDataset(trn_path, img_size, is_train=True, degradations=degradations)
     trn_loader = DataLoader(trn_dataset, batch_size=batch_size, shuffle=False,
                             pin_memory=True, sampler=ImbalancedDatasetSampler(trn_dataset,
                                                                               callback_get_label=lambda dataset, ix: dataset.classes[ix]))
-    tst_loader = DataLoader(MyDataset(tst_path, img_size), batch_size=batch_size, shuffle=False,
+    tst_dataset = MyDataset(tst_path, img_size, is_train=False)
+    tst_loader = DataLoader(tst_dataset, batch_size=batch_size, shuffle=False,
                             pin_memory=True, sampler=None)
 
     return trn_loader, tst_loader
