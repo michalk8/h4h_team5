@@ -87,10 +87,10 @@ def main(args):
 
     history = model.fit_generator(
         train_data_gen,
-        steps_per_epoch=10,#total_train // BATCH_SIZE,
-        epochs=1,
+        steps_per_epoch=total_train // BATCH_SIZE,
+        epochs=EPOCHS,
         validation_data=val_data_gen,
-        validation_steps=10,  # total_test // BATCH_SIZE,
+        validation_steps=total_test // BATCH_SIZE,
         class_weight=class_weights,
         callbacks=[tensorboard_callback, csv_callback]
     )
