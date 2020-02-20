@@ -2,11 +2,11 @@
 
 import torch
 import os
-import numpy as np
 
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
+from imbalanced_sampler import ImbalancedDatasetSampler
 
 
 class MyDataset(Dataset):
@@ -39,8 +39,9 @@ class MyDataset(Dataset):
 
 def get_datasets(root_dir, batch_size=16):
     trn_path, tst_path = os.path.join(root_dir, 'train',), os.path.join(root_dir, 'test')
-    trn_loader = DataLoader(MyDataset(trn_path), batch_size=batch_size, shuffle=True,
-                            pin_memory=True, sampler=None)
+    trn_dataset = MyDataset(trn_path)
+    trn_loader = DataLoader(trn_dataset, batch_size=batch_size, shuffle=True,
+                            pin_memory=True, sampler=ImbalancedDatasetSampler(trn_dataset))
     tst_loader = DataLoader(MyDataset(tst_path), batch_size=batch_size, shuffle=False,
                             pin_memory=True, sampler=None)
 
