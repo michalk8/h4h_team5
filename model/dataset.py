@@ -2,6 +2,8 @@
 
 import torch
 import os
+import numpy as np
+import re
 
 try:
     from cStringIO import StringIO as BytesIO
@@ -28,10 +30,10 @@ class MyDataset(Dataset):
         self.augmentations = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
-            transforms.RandomRotation(degrees=180)
+            transforms.RandomRotation(degrees=180, fill=255)
             
         ])
-        self.degradations = degradations
+        self.degradations = ['jpeg_0', 'gaussblur_10']
         print('Number of classes:', len(self.class_mapper))
 
     def __len__(self):
@@ -48,15 +50,16 @@ class MyDataset(Dataset):
         if self.degradations:
             for i in self.degradations:
                 w = re.split('_', i)
-                if w[0] == 'gaussblur':
-                    sigma = w[1]
+                if w[0] == 'gaussblur' and w[1] != '0':
+                    sigma = int(w[1])
                     img = img.filter(ImageFilter.GaussianBlur(radius=sigma))
-                elif w[0] == 'jpeg':
-                    quality = w[1]
+                elif w[0] == 'jpeg' and w[1] != '0':
+                    quality = int(w[1])
                     out = BytesIO()
-                    img.save(out, format='JPEG',quality=quality)
-                    img = out.seek(0)    
-                    
+                    img.save(out, format='JPEG', quality=quality)
+                    out.seek(0)
+                    img = Image.open(out)
+
         totensor = transforms.ToTensor()
         img = totensor(img)
         return img, y
@@ -66,7 +69,7 @@ def get_datasets(root_dir, batch_size=16):
     trn_path, tst_path = os.path.join(root_dir, 'train',), os.path.join(root_dir, 'test')
     trn_dataset = MyDataset(trn_path)
     trn_loader = DataLoader(trn_dataset, batch_size=batch_size, shuffle=False,
-                            pin_memory=True, sampler=ImbalancedDatasetSampler(trn_dataset))
+                            pin_memory=True)#, sampler=ImbalancedDatasetSampler(trn_dataset))
     tst_loader = DataLoader(MyDataset(tst_path), batch_size=batch_size, shuffle=False,
                             pin_memory=True, sampler=None)
 
@@ -74,7 +77,10 @@ def get_datasets(root_dir, batch_size=16):
 
 
 if __name__ == '__main__':
-    dataset, _ = get_datasets('./../dataset_rem_lr')
+    dataset, _ = get_datasets('./../../dataset_rem_lr')
     for img, _ in dataset:
-        Image.fromarray(img.detach().cpu().numpy()[0, ..., :3]).show()
+        img = img.numpy()[0]
+        img = np.swapaxes(img, 0, 2)
+        img = np.swapaxes(img, 0, 1)
+        Image.fromarray((img * 255).astype(np.uint8)).show()
         break
