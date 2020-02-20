@@ -19,7 +19,7 @@ from PIL import ImageFilter
 
 class MyDataset(Dataset):
 
-    def __init__(self, path, degradations=None):
+    def __init__(self, path, degradations=None, resize=None):
         self.paths = [os.path.join(path, cls, f)
                       for cls in os.listdir(path)
                       for f in os.listdir(os.path.join(path, cls))]
@@ -33,7 +33,8 @@ class MyDataset(Dataset):
             transforms.RandomRotation(degrees=180, fill=255)
             
         ])
-        self.degradations = ['jpeg_0', 'gaussblur_10']
+        self.degradations = degradations
+        self.resize = resize
         print('Number of classes:', len(self.class_mapper))
 
     def __len__(self):
@@ -45,6 +46,11 @@ class MyDataset(Dataset):
 
         img = Image.open(self.paths[idx]).convert('RGB')
         y = self.class_mapper[self.classes[idx]]
+        
+        if self.resize:
+            resize_transform = transforms.Resize(self.resize)
+            img = resize_transform(img)
+            
         img = self.augmentations(img)
         
         if self.degradations:
@@ -60,6 +66,7 @@ class MyDataset(Dataset):
                     out.seek(0)
                     img = Image.open(out)
 
+            
         totensor = transforms.ToTensor()
         img = totensor(img)
         return img, y
