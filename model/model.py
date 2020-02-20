@@ -50,6 +50,10 @@ def main(args):
     prec = {'train': [], 'val': []}
     rec = {'train': [], 'val': []}
     f1 = {'train': [], 'val': []}
+    
+    prec_avg = {'train': [], 'val': []}
+    rec_avg = {'train': [], 'val': []}
+    f1_avg = {'train': [], 'val': []}
 
     b_loss = {'train': [], 'val': []}
     b_accs = {'train': [], 'val': []}
@@ -113,6 +117,7 @@ def main(args):
             prec[phase].append(precision)
             rec[phase].append(recall)
             f1[phase].append(fscore)
+
             prec_avg[phase].append(precision_avg)
             rec_avg[phase].append(recall_avg)
             f1_avg[phase].append(fscore_avg)
@@ -122,7 +127,7 @@ def main(args):
                 phase, epoch_loss, epoch_acc))
 
     result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
-              'prec': prec, 'rec': rec, 'f1': f1, 'prec_avg': prec_avg, 'rec_avg': rec_avg, 'f1_avg':fscore_avg}
+              'prec': prec, 'rec': rec, 'f1': f1, 'prec_avg': prec_avg, 'rec_avg': rec_avg, 'f1_avg':f1_avg}
     with open('result_{}_{}.pickle'.format(args.img_size, '_'.join(args.degradations)), 'wb') as fout:
         pickle.dump(result, fout)
 
