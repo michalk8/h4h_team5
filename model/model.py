@@ -5,9 +5,11 @@ import torch.optim as optim
 import torch
 import torchvision.models as models
 import argparse
+import pickle
 
 from dataset import get_datasets
 from torch.optim import lr_scheduler
+from sklearn.metrics import confusion_matrix
 
 N_EPOCHS = 5
 N_CLS = 15
@@ -35,17 +37,27 @@ def main(args):
     optimizer = optim.Adam(model.parameters(), 0.0001)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
+    cmats = {'train': [], 'val': []}
+    losses = {'train': [], 'val': []}
+    accs = {'train': [], 'val': []}
+
+    b_loss = {'train': [], 'val': []}
+    b_accs = {'train': [], 'val': []}
+
     for epoch in range(N_EPOCHS):
+        y_trues, y_preds = [], []
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()
+                print('TRAIN')
             else:
                 model.eval()
+                print('EVAL')
 
             running_loss = 0.0
             running_corrects = 0
 
-            for inputs, labels in dataloaders[phase]:
+            for cnt, (inputs, labels) in enumerate(dataloaders[phase]):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -60,17 +72,36 @@ def main(args):
                         loss.backward()
                         optimizer.step()
 
+                y_trues.extend(list(labels.cpu().numpy()))
+                y_preds.extend(list(preds.cpu().numpy()))
+
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
+
+                if cnt % 10:
+                    l = (loss.item() * inputs.size(0)).cpu().numpy()
+                    a = (torch.sum(preds == labels.data).item() / inputs.size(0)).cpu().numpy()
+                    b_loss[phase].append(l)
+                    b_accs[phase].append(a)
+
             if phase == 'train':
                 scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
+            losses[phase].append(epoch_loss)
+            accs[phase].append(epoch_acc)
+            cmats[phase].append(confusion_matrix(y_trues, y_preds))
+
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
         print()
+
+        result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs}
+        with open('result_{}_{}_{}_{}.pickle'.format(args.img_size, args.downsampling, args.sigma,
+                                                     args.jpeg_quality), 'wb') as fout:
+            pickle.dump(result, fout)
 
 
 if __name__ == '__main__':
