@@ -28,6 +28,28 @@ _resise_methods = dict(
 )
 
 
+class LogCallBack(tf.keras.callbacks.Callback):
+
+    def __init__(self, fname):
+        super().__init__()
+        self.file_trn = open('{}_trn.txt'.format(fname), 'w')
+        self.file_tst = open('{}_tst.txt'.format(fname), 'w')
+
+    def on_train_batch_end(self, batch, logs=None):
+        print('{},{},{},{},{}'.format(logs['loss'], logs['acc'], logs['f1_m'], logs['precision'], logs['recall']),
+              file=self.file_trn)
+
+    def on_test_batch_begin(self, batch, logs=None):
+        print('{},{},{},{},{}'.format(logs['loss'], logs['acc'], logs['f1_m'], logs['precision'], logs['recall']),
+              file=self.file_tst)
+
+    def on_train_epoch_end(self, batch, logs=None):
+        self.file_trn.flush()
+
+    def on_test_epoch_end(self, batch, logs=None):
+        self.file_tst.flush()
+
+
 EPOCHS = 5
 BATCH_SIZE = 16
 IMG_W, IMG_H, IMG_C = 400, 400, 3
@@ -49,7 +71,10 @@ def main(args):
     total_test = sum([len(files) for r, d, files in os.walk(test_dir)])
 
     model = get_model(args.img_size, _resise_methods[args.downsampling], args.jpeg_quality, args.sigma)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy',
+                                                                              f1_m,
+                                                                              tf.keras.metrics.Precision(),
+                                                                              tf.keras.metrics.Recall()])
     print(model.summary())
 
     image_gen_train = ImageDataGenerator(
@@ -81,9 +106,9 @@ def main(args):
     for i in range(len(files_per_class)):
         class_weights[i] = 1 - (float(files_per_class[i]) / total_files)
 
-    tensorboard_callback = tf.keras.callbacks.TensorBoard('logs', write_images=True)
-    csv_callback = tf.keras.callbacks.CSVLogger('data_{}_{}_{}_{}.csv'.format(args.img_size, args.downsampling,
-                                                                              args.sigma, args.jpeg_quality), separator=',', append=False)
+    # tensorboard_callback = tf.keras.callbacks.TensorBoard('logs', write_images=True)
+    log_callback = LogCallBack('data_{}_{}_{}_{}.csv'.format(args.img_size, args.downsampling,
+                               args.sigma, args.jpeg_quality))
 
     history = model.fit_generator(
         train_data_gen,
@@ -92,7 +117,7 @@ def main(args):
         validation_data=val_data_gen,
         validation_steps=total_test // BATCH_SIZE,
         class_weight=class_weights,
-        callbacks=[tensorboard_callback, csv_callback]
+        callbacks=[log_callback]
     )
 
     with open('trainHistoryDict_{}_{}_{}_{}.pickle'.format(args.img_size, args.downsampling, args.sigma,
