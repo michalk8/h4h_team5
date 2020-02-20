@@ -66,9 +66,9 @@ class MyDataset(Dataset):
                     out.seek(0)
                     img = Image.open(out)
 
-            
         totensor = transforms.ToTensor()
         img = totensor(img)
+
         return img, y
 
 
