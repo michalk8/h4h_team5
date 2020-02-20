@@ -19,7 +19,7 @@ BATCH_SIZE = 16
 
 
 def create_model():
-    model = models.resnet18()
+    model = models.resnext50_32x4d(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, N_CLS)
 
@@ -29,6 +29,8 @@ def create_model():
 def main(args):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = create_model().to(device)
+    
+    print('Number of parameters:', sum(p.numel() for p in model.parameters()))
 
     trn_loader, tst_loader = get_datasets(args.dataset_root, args.img_size, args.degradations)
     dataloaders = {'train': trn_loader, 'val': tst_loader}
