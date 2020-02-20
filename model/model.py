@@ -79,8 +79,8 @@ def main(args):
                 running_corrects += torch.sum(preds == labels.data)
 
                 if cnt % 10:
-                    l = (loss.item() * inputs.size(0)).cpu().numpy()
-                    a = (torch.sum(preds == labels.data).item() / inputs.size(0)).cpu().numpy()
+                    l = (loss.item() * inputs.size(0))
+                    a = (torch.sum(preds == labels.data).item() / inputs.size(0))
                     b_loss[phase].append(l)
                     b_accs[phase].append(a)
 
