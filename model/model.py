@@ -14,13 +14,14 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 #from my_metrics import *
 from time import time
 
-N_EPOCHS = 10
+N_EPOCHS = 1
 N_CLS = 15
 BATCH_SIZE = 16
 
 
 def create_model():
-    model = models.resnext50_32x4d(pretrained=True)
+    model = models.resnet18(pretrained=True)
+    #model = models.resnext50_32x4d(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, N_CLS)
 
@@ -121,7 +122,7 @@ def main(args):
                 phase, epoch_loss, epoch_acc))
 
     result = {'cmats': cmats, 'losses': losses, 'accs': accs, 'b_loss': b_loss, 'b_acc': b_accs,
-              'prec': prec, 'rec': rec, 'f1': f1, 'prec_avg'; prec_avg, 'rec_avg': rec_avg, 'f1_avg':fscore_avg}
+              'prec': prec, 'rec': rec, 'f1': f1, 'prec_avg': prec_avg, 'rec_avg': rec_avg, 'f1_avg':fscore_avg}
     with open('result_{}_{}.pickle'.format(args.img_size, '_'.join(args.degradations)), 'wb') as fout:
         pickle.dump(result, fout)
 
